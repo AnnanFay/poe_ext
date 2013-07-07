@@ -112,7 +112,7 @@ function setupInventoryRendering(items) {
 			for (var type in oTypes[key]) {
 				if (oTypes[key].hasOwnProperty(type)) {
 					id = type.replace(/[^a-zA-Z]/g,'_');
-					inner.append('<li><label class="checkbox" ><input checked type="checkbox" value="' + type + '" name="viewType"/>' + type + '</label></li>');
+					inner.append('<li><label class="checkbox" ><input id="type_' + id + '" checked type="checkbox" value="' + type + '" name="viewType"/>' + type + '</label></li>');
 				}
 			}
 		}
@@ -138,19 +138,71 @@ function setupInventoryRendering(items) {
 		$($(this).data('target')).find('input[type=checkbox]').prop('checked',$(this).prop('checked'));
 	});
 
-	// load previous settings
-	var oPromise = getCache('inventoryCols')
-
-		.done(function(aCols){
+	// load previous column settings
+	getCache('inventoryCols')
+		.done(function(aCols) {
 			aVisibleCols = aCols;
 			$(aCols.toString()).prop('checked',true);
 			deferred.resolve();
 		})
+		.fail(function() {
+			aVisibleCols = [];
+			deferred.resolve();
+		});
 
-		.fail(function(aCols){
+	// load previous item settings
+	getCache('viewItems')
+		.done(function(items) {
+			// set global
+			viewItems = items;
+			// reset all form elements
+			$('#inventoryItems input').prop('checked', false);
+			// check the loaded form elements
+			$(items.toString()).prop('checked', true);
+
+			$('#rareList').empty().append( formatRareList(getSortedItems(aInventory),false) ).find('table').tablesorter();
+			$('#openRareList').trigger('click');
+
 			deferred.resolve();
 		})
-	;
+		.fail(function() {
+			viewItems = []; // default value
+			deferred.resolve();
+		});
+
+	// load saved presets
+	getCache('viewPresets')
+		.done(function(presets) {
+			viewPresets = presets;
+
+			for (vp in viewPresets) {
+				$('<li><a class="view-preset"> Preset '+vp+'</a></li>')
+					.click(function () {
+						aVisibleCols = viewPresets[vp];
+						setCache('inventoryCols', aVisibleCols);
+
+						// TODO: Refactor this and below functions
+						for (i in aVisibleCols) {
+							$(aVisibleCols[i]).prop('checked', true);
+						}						
+						// empty and refill table
+
+						$('#rareList')
+							.empty()
+							.append( formatRareList(getSortedItems(aInventory), false) )
+							.find('table')
+							.tablesorter();
+
+						$('#openRareList').trigger('click');
+					}).insertAfter($('#addPresetView').parent());
+			}
+
+			deferred.resolve();
+		})
+		.fail(function() {
+			viewPresets = [];
+			deferred.resolve();
+		});
 
 	return deferred.promise();
 
@@ -168,23 +220,13 @@ $('#applyDisplaySelection').click(function () {
 $('#applyColSelection').click(function(){
 
 
-	var aSelected = [];
+	var aVisibleCols = [];
 
-	$('input[name=viewProps]:checked').each(function(idx,item){
-		aSelected.push('#' + $(item).attr('id'));
-	});
-	$('input[name=viewMods]:checked').each(function(idx,item){
-		aSelected.push('#' + $(item).attr('id'));
-	});
-	$('input[name=viewCalc]:checked').each(function(idx,item){
-		aSelected.push('#' + $(item).attr('id'));
-	});
-	$('input[name=viewReq]:checked').each(function(idx,item){
-		aSelected.push('#' + $(item).attr('id'));
+	$('input:checked').filter('[name=viewProps], [name=viewMods], [name=viewCalc], [name=viewReq]').each(function(idx,item){
+		aVisibleCols.push('#' + $(item).attr('id'));
 	});
 
-	aVisibleCols = aSelected;
-	setCache('inventoryCols',aSelected);
+	setCache('inventoryCols',aVisibleCols);
 
 	$('#rareList').empty().append( formatRareList(getSortedItems(aInventory),false) ).find('table').tablesorter();
 
@@ -193,6 +235,14 @@ $('#applyColSelection').click(function(){
 })
 
 $('#applyItemSelection').click(function(){
+
+	viewItems = [];
+
+	$('input:checked').filter('[name=viewType], [name=viewRarity]').each(function(idx, item){
+		viewItems.push('#' + $(item).attr('id'));
+	});
+
+	setCache('viewItems', viewItems);
 
 	$('#rareList').empty().append( formatRareList(getSortedItems(aInventory),false) ).find('table').tablesorter();
 	$('#openRareList').trigger('click');
@@ -371,7 +421,10 @@ function processItems(items){
 				if (items.length){
 
 					// render rare list
-					$('#rareList').append( formatRareList(getSortedItems(items)) ).find('table').tablesorter();
+					$('#rareList')
+						.append( formatRareList(getSortedItems(items)) )
+						.find('table')
+						.tablesorter();
 
 					$('#openRareList')
 						.click(function(){
@@ -384,8 +437,7 @@ function processItems(items){
 							$('div#crafting-content div.crafting-block').hide();
 							$('#rareList').show();
 							$(this).parent().addClass('active');
-						})
-					;
+						});
 
 				}
 
@@ -401,8 +453,15 @@ function processItems(items){
 
 			}
 
-		})
-	;
+		});
+
+
+	$('#addPresetView')
+		.click(function(){
+			viewPresets.push(aVisibleCols);
+			setCache('viewPresets', viewPresets);
+			console.log(viewPresets);
+		});
 
 	return deferred.promise();
 
@@ -863,7 +922,7 @@ function getSortedItems(items) {
 
 	for (var i = 0; i < items.length; i++) {
 		var oThis = items[i];
-		var thisLevel = oThis.requirements.hasOwnProperty('Level') ? parseInt(oThis.requirements.Level,10) : 0;
+		var thisLevel = oThis.requirements.hasOwnProperty('Level') ? parseInt(oThis.requirements.Level,10) : 1;
 
 		if (thisLevel <= max && thisLevel >= min && oRarity[oThis.rarity] === true && oType[oThis.itemRealType] === true ) sortedRares.push(oThis);
 	}
@@ -905,3 +964,57 @@ function getSortedRares(items) {
 
 }
 
+// WIP
+// will eventually highlight pareto front
+// might be useful
+
+// function get_row_values (row, idxs) {
+//     var cells = $('td', row);
+//     var values = [];
+// 	for (i in idxs) {
+// 		var idx = idxs[i];
+// 		var cell = cells.get(idx);
+// 		var value = parseFloat(cell.innerHTML);
+// 		values.push(value);
+// 	}
+// 	return values;
+// }
+
+// function highlight (el) {
+// 	$(el).addClass('pareto');
+// }
+
+// function pareto (table) {
+//     idxs = [];
+//     var sortedHeaders = $('.tablesorter-headerAsc, .tablesorter-headerDesc', table);
+//     sortedHeaders.each(function() {
+//     	idxs.push($(this).attr('data-column'));
+//     });
+
+//     last = undefined;
+//     $('tbody tr', table).each(function () {
+//     	var values = get_row_values(this, idxs);
+//     	if (!last) {
+//     		highlight(this);
+// 	    	// console.log('no last', values, last, this)
+// 		} else {
+// 	    	for (v in values) {
+// 	    		var value = values[v];
+// 	    		if (value > last[v]) {
+// 		    		highlight(this);
+// 	    			console.log(values, last, this)
+// 		    		break;
+// 	    		}
+// 	    	}
+// 	    }
+//     	last = values;
+//     });
+// }
+
+// $('body').on('click', 'th', function() {
+//     var header = this;
+//     var table = $(header).parents('table');
+//     $('tr', table).removeClass('pareto')
+//     console.log(table.get())
+//     setTimeout(pareto, 0, table)
+// });

@@ -60,3 +60,11 @@ ul#rares-menu label {
 .tablesorter-stickyHeader {
 	padding-top: 40px;
 }
+
+/*.pareto {
+    color: red;
+}*/
+
+a {
+    cursor: pointer;
+}
