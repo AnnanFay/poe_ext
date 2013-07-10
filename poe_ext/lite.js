@@ -318,7 +318,7 @@
 '		<script src="/assets/js/cache.js"></script>' +
 '		<script src="/assets/js/loader.js"></script>' +
 '' +
-'		<script src="/myscript.js"></script>' +
+'		<script src="/item-parser.js"></script>' +
 '		<script src="/matcher.js"></script>' +
 '		<script src="/main.js"></script>' +
 '		<script src="/assets/js/clipboard.js"></script>' +

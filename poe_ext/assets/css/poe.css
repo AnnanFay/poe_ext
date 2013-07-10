@@ -375,14 +375,24 @@
 {
 	top: -50px; 
 }
+
+.item-image {
+	z-index: -1;
+}
+
 .sockets
 {
     position: absolute;
     top: 22px;
-    left: 22px
+    left: 22px;
+	z-index: 0;
 }
+
 .link
 {
     position: absolute;
     z-index: -1;
+}
+.socket {
+	z-index: 0;
 }

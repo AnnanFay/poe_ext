@@ -14,20 +14,19 @@ def chunks(l, n):
         yield l[i:i+n]
 
 base_url = 'https://www.pathofexile.com/item-data/'
+filename = 'item_data.json'
 
 pages = 'armour weapon jewelry'.split(' ') # currency doesn't work yet
 
 def main():
     data = {}
     for p in pages:
-        data[p] = process_page(p)
+        data[p.title()] = process_page(p)
 
     json_string = json.dumps(   data,
                                 sort_keys = True,
                                 indent = 4,
                                 separators = (',', ': '))
-
-    filename = 'data.json'
     f = open(filename, 'w')
     f.write(json_string)
 

@@ -68,3 +68,7 @@ ul#rares-menu label {
 a {
     cursor: pointer;
 }
+
+td {
+    white-space: nowrap;
+}

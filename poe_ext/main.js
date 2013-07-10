@@ -16,25 +16,25 @@ $.tablesorter.defaults.sortInitialOrder = 'desc';
 // after a resort on a table scroll to the top (as sticky header maybe hiding content)
 $(document)
     .on('sortEnd', 'table', function(e, t) {
-    $.scrollTo(t, {
-        offset: {
-            top: -60
-        }
-    });
-})
+        $.scrollTo(t, {
+            offset: {
+                top: -60
+            }
+        });
+    })
 
 $('#resetCols')
     .click(function() {
-    $('#inventoryCols input[type=checkbox]:checked')
-        .prop('checked', false);
-    return false;
-});
+        $('#inventoryCols input[type=checkbox]:checked')
+            .prop('checked', false);
+        return false;
+    });
 $('#showAllCols')
     .click(function() {
-    $('#inventoryCols input[type=checkbox]')
-        .prop('checked', true);
-    return false;
-});
+        $('#inventoryCols input[type=checkbox]')
+            .prop('checked', true);
+        return false;
+    });
 
 // enable shift click for checkboxes
 
@@ -45,22 +45,22 @@ var cbLastName = '';
 $(document)
     .on("click", "li input[type=checkbox]", function(evt) {
 
-    var oThis = $(evt.target);
+        var oThis = $(evt.target);
 
-    var thisName = oThis.attr('name');
-    var thisID = oThis.attr('id');
+        var thisName = oThis.attr('name');
+        var thisID = oThis.attr('id');
 
-    if (thisName === cbLastName && $.trim(thisName !== '') && evt.shiftKey) {
-        var aCB = $('input[name="' + thisName + '"]');
-        var oFirst = $('#' + cbLastID);
-        aCB.slice($.inArray(oFirst[0], aCB), $.inArray($('#' + thisID)[0], aCB) + 1)
-            .prop('checked', oFirst.prop('checked'));
-    }
+        if (thisName === cbLastName && $.trim(thisName !== '') && evt.shiftKey) {
+            var aCB = $('input[name="' + thisName + '"]');
+            var oFirst = $('#' + cbLastID);
+            aCB.slice($.inArray(oFirst[0], aCB), $.inArray($('#' + thisID)[0], aCB) + 1)
+                .prop('checked', oFirst.prop('checked'));
+        }
 
-    cbLastID = thisID;
-    cbLastName = thisName;
+        cbLastID = thisID;
+        cbLastName = thisName;
 
-});
+    });
 
 function setupInventoryRendering(items) {
 
@@ -117,6 +117,9 @@ function setupInventoryRendering(items) {
     sortUL(oReqUL);
 
     // setup available types
+
+    console.log('types before rendering', oTypes);
+
     var oTypeUL = $('ul#viewCategories')
         .empty();
     for (key in oTypes) {
@@ -152,45 +155,163 @@ function setupInventoryRendering(items) {
     // add select all/none checkboxes to types and rarity
     $('input.toggleCheckboxes')
         .click(function() {
-        $('input[name=' + $(this)
-            .data('toggling') + ']')
-            .prop('checked', $(this)
-            .prop('checked'));
-    });
+            $('input[name=' + $(this)
+                .data('toggling') + ']')
+                .prop('checked', $(this)
+                    .prop('checked'));
+        });
 
     $('input.checkboxBoss')
         .click(function() {
-        $($(this)
-            .data('target'))
-            .find('input[type=checkbox]')
-            .prop('checked', $(this)
-            .prop('checked'));
-    });
+            $($(this)
+                .data('target'))
+                .find('input[type=checkbox]')
+                .prop('checked', $(this)
+                    .prop('checked'));
+        });
 
     // load previous column settings
     getCache('inventoryCols')
         .done(function(aCols) {
-        aVisibleCols = aCols;
-        $(aCols.toString())
-            .prop('checked', true);
-        deferred.resolve();
-    })
+            aVisibleCols = aCols;
+            $(aCols.toString())
+                .prop('checked', true);
+            deferred.resolve();
+        })
         .fail(function() {
-        aVisibleCols = [];
-        deferred.resolve();
-    });
+            aVisibleCols = [];
+            deferred.resolve();
+        });
 
     // load previous item settings
     getCache('viewItems')
         .done(function(items) {
-        // set global
-        viewItems = items;
-        // reset all form elements
-        $('#inventoryItems input')
-            .prop('checked', false);
-        // check the loaded form elements
-        $(items.toString())
-            .prop('checked', true);
+            // set global
+            viewItems = items;
+            // reset all form elements
+            $('#inventoryItems input')
+                .prop('checked', false);
+            // check the loaded form elements
+            $(items.toString())
+                .prop('checked', true);
+
+            $('#rareList')
+                .empty()
+                .append(formatRareList(getSortedItems(aInventory), false))
+                .find('table')
+                .tablesorter();
+            $('#openRareList')
+                .trigger('click');
+
+            deferred.resolve();
+        })
+        .fail(function() {
+            viewItems = []; // default value
+            deferred.resolve();
+        });
+
+    // load saved presets
+    getCache('viewPresets')
+        .done(function(presets) {
+            viewPresets = presets;
+
+            for (vp in viewPresets) {
+                $('<li><a class="view-preset"> Preset ' + vp + '</a></li>')
+                    .click(function() {
+                        aVisibleCols = viewPresets[vp];
+                        setCache('inventoryCols', aVisibleCols);
+
+                        // TODO: Refactor this and below functions
+                        for (i in aVisibleCols) {
+                            $(aVisibleCols[i])
+                                .prop('checked', true);
+                        }
+                        // empty and refill table
+
+                        $('#rareList')
+                            .empty()
+                            .append(formatRareList(getSortedItems(aInventory), false))
+                            .find('table')
+                            .tablesorter();
+
+                        $('#openRareList')
+                            .trigger('click');
+                    })
+                    .insertAfter($('#addPresetView')
+                        .parent());
+            }
+
+            deferred.resolve();
+        })
+        .fail(function() {
+            viewPresets = [];
+            deferred.resolve();
+        });
+
+    return deferred.promise();
+
+}
+
+$('#applyDisplaySelection')
+    .click(function() {
+        if ($('#inventoryLocation')
+            .find('input[type=checkbox]:checked')
+            .prop('id') == 'showInventoryLocationTable') {
+            $('#rareList')
+                .find('.locationLink')
+                .text('(hide)')
+                .parent()
+                .children('.locationTable')
+                .show();
+        } else {
+            $('#rareList')
+                .find('.locationLink')
+                .text('(show)')
+                .parent()
+                .children('.locationTable')
+                .hide();
+        }
+    })
+
+$('#applyColSelection')
+    .click(function() {
+
+
+        var aVisibleCols = [];
+
+        $('input:checked')
+            .filter('[name=viewProps], [name=viewMods], [name=viewCalc], [name=viewReq]')
+            .each(function(idx, item) {
+                aVisibleCols.push('#' + $(item)
+                    .attr('id'));
+            });
+
+        setCache('inventoryCols', aVisibleCols);
+
+        $('#rareList')
+            .empty()
+            .append(formatRareList(getSortedItems(aInventory), false))
+            .find('table')
+            .tablesorter();
+
+        $('#openRareList')
+            .trigger('click');
+
+    })
+
+$('#applyItemSelection')
+    .click(function() {
+
+        viewItems = [];
+
+        $('input:checked')
+            .filter('[name=viewType], [name=viewRarity]')
+            .each(function(idx, item) {
+                viewItems.push('#' + $(item)
+                    .attr('id'));
+            });
+
+        setCache('viewItems', viewItems);
 
         $('#rareList')
             .empty()
@@ -200,134 +321,16 @@ function setupInventoryRendering(items) {
         $('#openRareList')
             .trigger('click');
 
-        deferred.resolve();
     })
-        .fail(function() {
-        viewItems = []; // default value
-        deferred.resolve();
-    });
-
-    // load saved presets
-    getCache('viewPresets')
-        .done(function(presets) {
-        viewPresets = presets;
-
-        for (vp in viewPresets) {
-            $('<li><a class="view-preset"> Preset ' + vp + '</a></li>')
-                .click(function() {
-                aVisibleCols = viewPresets[vp];
-                setCache('inventoryCols', aVisibleCols);
-
-                // TODO: Refactor this and below functions
-                for (i in aVisibleCols) {
-                    $(aVisibleCols[i])
-                        .prop('checked', true);
-                }
-                // empty and refill table
-
-                $('#rareList')
-                    .empty()
-                    .append(formatRareList(getSortedItems(aInventory), false))
-                    .find('table')
-                    .tablesorter();
-
-                $('#openRareList')
-                    .trigger('click');
-            })
-                .insertAfter($('#addPresetView')
-                .parent());
-        }
-
-        deferred.resolve();
-    })
-        .fail(function() {
-        viewPresets = [];
-        deferred.resolve();
-    });
-
-    return deferred.promise();
-
-}
-
-$('#applyDisplaySelection')
-    .click(function() {
-    if ($('#inventoryLocation')
-        .find('input[type=checkbox]:checked')
-        .prop('id') == 'showInventoryLocationTable') {
-        $('#rareList')
-            .find('.locationLink')
-            .text('(hide)')
-            .parent()
-            .children('.locationTable')
-            .show();
-    } else {
-        $('#rareList')
-            .find('.locationLink')
-            .text('(show)')
-            .parent()
-            .children('.locationTable')
-            .hide();
-    }
-})
-
-$('#applyColSelection')
-    .click(function() {
-
-
-    var aVisibleCols = [];
-
-    $('input:checked')
-        .filter('[name=viewProps], [name=viewMods], [name=viewCalc], [name=viewReq]')
-        .each(function(idx, item) {
-        aVisibleCols.push('#' + $(item)
-            .attr('id'));
-    });
-
-    setCache('inventoryCols', aVisibleCols);
-
-    $('#rareList')
-        .empty()
-        .append(formatRareList(getSortedItems(aInventory), false))
-        .find('table')
-        .tablesorter();
-
-    $('#openRareList')
-        .trigger('click');
-
-})
-
-$('#applyItemSelection')
-    .click(function() {
-
-    viewItems = [];
-
-    $('input:checked')
-        .filter('[name=viewType], [name=viewRarity]')
-        .each(function(idx, item) {
-        viewItems.push('#' + $(item)
-            .attr('id'));
-    });
-
-    setCache('viewItems', viewItems);
-
-    $('#rareList')
-        .empty()
-        .append(formatRareList(getSortedItems(aInventory), false))
-        .find('table')
-        .tablesorter();
-    $('#openRareList')
-        .trigger('click');
-
-})
 
 $('#applyIgnoreLocations')
     .click(function() {
 
-    renderCrafting(aInventory);
-    $(lastView)
-        .trigger('click');
+        renderCrafting(aInventory);
+        $(lastView)
+            .trigger('click');
 
-});
+    });
 
 function getCraftingIgnores() {
     var aIgnoreTabs = [];
@@ -335,15 +338,15 @@ function getCraftingIgnores() {
 
     $('input[name=ignoreTabs]:checked')
         .each(function(idx, item) {
-        aIgnoreTabs.push(parseInt($(item)
-            .val(), 10));
-    });
+            aIgnoreTabs.push(parseInt($(item)
+                .val(), 10));
+        });
 
     $('input[name=ignoreChars]:checked')
         .each(function(idx, item) {
-        aIgnoreChars.push($(item)
-            .val());
-    });
+            aIgnoreChars.push($(item)
+                .val());
+        });
 
     return {
         chars: aIgnoreChars,
@@ -435,7 +438,7 @@ function renderCrafting(items) {
                 $('<tr>')
                     .append('<td>' + parseInt(match.complete * 10000) / 100 + '%</td>')
                     .append($('<td>')
-                    .append(getItemsUL(match.items)))
+                        .append(getItemsUL(match.items)))
                     .append('<td>' + ((match.complete < 1 && match.missing != null) ? match.missing.join('<br>') : '') + '</td>')
                     .appendTo(oTBody);
             }
@@ -456,25 +459,25 @@ function renderCrafting(items) {
 
         $('ul#craftingTabs li.crafting-page a')
             .click(function() {
-            $('#rareList')
-                .hide();
-            $('div#crafting-content div.crafting-block')
-                .hide();
-            $('#menu2, #menu3, ul#craftingTabs li')
-                .removeClass('active');
-            $(this)
-                .parent()
-                .addClass('active');
-            $(this)
-                .closest('.dropdown')
-                .addClass('active');
-            $('div#crafting-content div[data-index=' + $(this)
-                .data('index') + ']')
-                .show();
-            lastView = 'ul#craftingTabs li.crafting-page a[data-index=' + $(this)
-                .data('index') + ']';
-            setCache('last-view', lastView);
-        });
+                $('#rareList')
+                    .hide();
+                $('div#crafting-content div.crafting-block')
+                    .hide();
+                $('#menu2, #menu3, ul#craftingTabs li')
+                    .removeClass('active');
+                $(this)
+                    .parent()
+                    .addClass('active');
+                $(this)
+                    .closest('.dropdown')
+                    .addClass('active');
+                $('div#crafting-content div[data-index=' + $(this)
+                    .data('index') + ']')
+                    .show();
+                lastView = 'ul#craftingTabs li.crafting-page a[data-index=' + $(this)
+                    .data('index') + ']';
+                setCache('last-view', lastView);
+            });
 
     } catch (e) {
 
@@ -483,7 +486,7 @@ function renderCrafting(items) {
 
         $('#err')
             .html('An error occured while processing matches in the stash. Please ' +
-            'select refresh then full to try again. If the error persists, contact the author.');
+                'select refresh then full to try again. If the error persists, contact the author.');
 
         console.log('last match item processed');
         console.log(match);
@@ -497,7 +500,6 @@ function renderCrafting(items) {
 }
 
 function processItems(items) {
-
     var deferred = new $.Deferred();
 
     // used to rerender the page
@@ -511,60 +513,60 @@ function processItems(items) {
     setupInventoryRendering(items)
         .done(function() {
 
-        try {
+            try {
 
-            if (items.length) {
+                if (items.length) {
 
-                // render rare list
-                $('#rareList')
-                    .append(formatRareList(getSortedItems(items)))
-                    .find('table')
-                    .tablesorter();
-
-                $('#openRareList')
-                    .click(function() {
-                    lastView = '#openRareList';
-                    setCache('last-view', lastView);
-
-                    $('#menu2, #menu3, ul#craftingTabs li')
-                        .removeClass('active');
-
-                    $(this)
-                        .closest('li.dropdown')
-                        .addClass('active');
-                    $('div#crafting-content div.crafting-block')
-                        .hide();
+                    // render rare list
                     $('#rareList')
-                        .show();
-                    $(this)
-                        .parent()
-                        .addClass('active');
-                });
+                        .append(formatRareList(getSortedItems(items)))
+                        .find('table')
+                        .tablesorter();
+
+                    $('#openRareList')
+                        .click(function() {
+                            lastView = '#openRareList';
+                            setCache('last-view', lastView);
+
+                            $('#menu2, #menu3, ul#craftingTabs li')
+                                .removeClass('active');
+
+                            $(this)
+                                .closest('li.dropdown')
+                                .addClass('active');
+                            $('div#crafting-content div.crafting-block')
+                                .hide();
+                            $('#rareList')
+                                .show();
+                            $(this)
+                                .parent()
+                                .addClass('active');
+                        });
+
+                }
+
+                deferred.resolve();
+
+            } catch (e) {
+
+                console.log('error occured while rendering stash');
+                errorDump(e);
+
+                $('#err')
+                    .html('An error occured while rendering the stash. ' +
+                        'Select refresh then full to try again.');
 
             }
 
-            deferred.resolve();
-
-        } catch (e) {
-
-            console.log('error occured while rendering stash');
-            errorDump(e);
-
-            $('#err')
-                .html('An error occured while rendering the stash. ' +
-                'Select refresh then full to try again.');
-
-        }
-
-    });
+        });
 
 
     $('#addPresetView')
         .click(function() {
-        viewPresets.push(aVisibleCols);
-        setCache('viewPresets', viewPresets);
-        console.log(viewPresets);
-    });
+            viewPresets.push(aVisibleCols);
+            setCache('viewPresets', viewPresets);
+            console.log(viewPresets);
+        });
 
     return deferred.promise();
 
@@ -583,19 +585,19 @@ function getLocationLink(item, category) {
             .append('(show)')
             .addClass('locationLink')
             .on('click', function() {
-            $(this)
-                .parent()
-                .children('.locationTable')
-                .toggle();
-            if ($(this)
-                .text() == '(show)') {
                 $(this)
-                    .text('(hide)');
-            } else {
-                $(this)
-                    .text('(show)');
-            }
-        });
+                    .parent()
+                    .children('.locationTable')
+                    .toggle();
+                if ($(this)
+                    .text() == '(show)') {
+                    $(this)
+                        .text('(hide)');
+                } else {
+                    $(this)
+                        .text('(show)');
+                }
+            });
 
         // check if the table shall be initially displayed
         if ($('#' + category.toLowerCase() + 'Location')
@@ -701,7 +703,7 @@ function getItemLink(item) {
 
             var html = $('<div class="fit-content" style="width:500px">');
 
-            var left = $('<div class="pull-left"  style="width:100px">');
+            var left = $('<div class="item-image pull-left"  style="width:100px">');
             left.append('<img src="' + item.rawItem.icon + '" />');
 
             var tableContainer = $('<div style="position: absolute; bottom: 25px">');
@@ -735,9 +737,9 @@ function getItemLink(item) {
         }
     })
         .click(function() {
-        copy_cb(itemToString(item));
-        console.log(item);
-    });
+            copy_cb(itemToString(item));
+            console.log(item);
+        });
 
     return oItem;
 
@@ -763,7 +765,7 @@ function displaySockets(item) {
     var link = {};
     link['H'] = 'http://www.pathofexile.com/gen/image/YTozOntpOjA7aTo1O2k6/MjthOjM6e3M6NDoidHlw/ZSI7czo2OiJzb2NrZXQi/O3M6Mjoic3QiO3M6NDoi/bGluayI7czo0OiJ2ZXJ0/IjtiOjA7fWk6MTtpOjU7/fQ,,/ba11e10fa2/Socket_Link_Horizontal.png';
     link['V'] = 'http://www.pathofexile.com/gen/image/YTozOntpOjA7aTo1O2k6/MjthOjM6e3M6NDoidHlw/ZSI7czo2OiJzb2NrZXQi/O3M6Mjoic3QiO3M6NDoi/bGluayI7czo0OiJ2ZXJ0/IjtiOjE7fWk6MTtpOjU7/fQ,,/3b93f7f851/Socket_Link_Vertical.png';
-    var cssPosition = new Array("pull-left", "pull-right", "pull-right", "pull-left", "pull-left", "pull-right");
+    var cssPosition = ["pull-left", "pull-right", "pull-right", "pull-left", "pull-left", "pull-right"];
 
     // Adjust horizontal alignment for the unique socket on a 2-square width item case
     var globalOffsetX = '';
@@ -774,7 +776,7 @@ function displaySockets(item) {
     var activeGroup = 0;
     for (var i = 0; i < item.sockets.numSockets; i++) {
         // Socket
-        sockets.append('<img src="' + icon[item.rawItem.sockets[i].attr] + '" alt="" class="' + cssPosition[i] + '"' + globalOffsetX + ' />');
+        sockets.append('<img src="' + icon[item.rawItem.sockets[i].attr] + '" alt="" class="socket ' + cssPosition[i] + '"' + globalOffsetX + ' />');
 
         // Link
         if (item.rawItem.w == 1) {
@@ -943,27 +945,27 @@ function formatRareList(sortedRares, bSetupDropdown) {
 
     $('input[name=viewProps]:checked')
         .each(function(idx, item) {
-        oView.props.push($(item)
-            .val());
-    });
+            oView.props.push($(item)
+                .val());
+        });
 
     $('input[name=viewMods]:checked')
         .each(function(idx, item) {
-        oView.mods.push($(item)
-            .val());
-    });
+            oView.mods.push($(item)
+                .val());
+        });
 
     $('input[name=viewCalc]:checked')
         .each(function(idx, item) {
-        oView.calculated.push($(item)
-            .val());
-    });
+            oView.calculated.push($(item)
+                .val());
+        });
 
     $('input[name=viewReq]:checked')
         .each(function(idx, item) {
-        oView.reqs.push($(item)
-            .val());
-    });
+            oView.reqs.push($(item)
+                .val());
+        });
 
     var j = 0;
 
@@ -981,12 +983,12 @@ function formatRareList(sortedRares, bSetupDropdown) {
             .addClass(oTypes[item.itemRealType])
             .addClass(oRarity[item.rarity])
             .append($('<td>')
-            .text((item.location.section === 'stash' ? currentLeague : item.location.section) + ' ' + (item.location.page === null ? 0 : item.location.page)))
+                .text((item.location.section === 'stash' ? currentLeague : item.location.section) + ' [' + (item.location.page === null ? 0 : item.location.page) + ']'))
             .append($('<td>')
-            .append(getItemLink(item))
-            .append(' ')
-            .append(getLocationLink(item, 'Inventory'))
-            .append(getLocationTable(item, 'Inventory')));
+                .append(getItemLink(item))
+                .append(' ')
+                .append(getLocationLink(item, 'Inventory'))
+                .append(getLocationTable(item, 'Inventory')));
 
 
         for (j = 0; j < oView.props.length; j++) {
@@ -1011,9 +1013,9 @@ function formatRareList(sortedRares, bSetupDropdown) {
 
     var th = $('<tr>')
         .append($('<th class="type-int">')
-        .text('Tab'))
+            .text('Tab'))
         .append($('<th class="type-string">')
-        .text('Item'));
+            .text('Item'));
 
     for (j = 0; j < oView.props.length; j++) {
         if (oView.props[j] === 'Base Type') {
@@ -1057,27 +1059,33 @@ function getSortedItems(items) {
     var max = parseInt($('#inventoryMaxLevel')
         .val(), 10);
 
-    if (isNaN(min)) min = 0;
-    if (isNaN(max)) max = 100;
+    if (isNaN(min)) {
+        min = 0;
+    }
+    if (isNaN(max)) {
+        max = 100;
+    }
 
 
     $('input[name=viewRarity]:checked')
         .each(function(idx, item) {
-        oRarity[$(item)
-            .val()] = true;
-    });
+            oRarity[$(item)
+                .val()] = true;
+        });
 
     $('input[name=viewType]:checked')
         .each(function(idx, item) {
-        oType[$(item)
-            .val()] = true;
-    });
+            oType[$(item)
+                .val()] = true;
+        });
 
     for (var i = 0; i < items.length; i++) {
-        var oThis = items[i];
-        var thisLevel = oThis.requirements.hasOwnProperty('Level') ? parseInt(oThis.requirements.Level, 10) : 1;
+        var item = items[i];
+        var thisLevel = item.requirements.hasOwnProperty('Level') ? parseInt(item.requirements.Level, 10) : 1;
 
-        if (thisLevel <= max && thisLevel >= min && oRarity[oThis.rarity] === true && oType[oThis.itemRealType] === true) sortedRares.push(oThis);
+        if (thisLevel <= max && thisLevel >= min && oRarity[item.rarity] === true && oType[item.itemRealType] === true) {
+            sortedRares.push(item);
+        }
     }
 
     // sort on rare name
@@ -1089,6 +1097,12 @@ function getSortedItems(items) {
         }
         return 0;
     });
+
+    console.log({
+        sortedRares: sortedRares,
+        oRarity: oRarity,
+        oType: oType
+    })
 
     return sortedRares;
 

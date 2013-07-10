@@ -1,5 +1,5 @@
 {
-    "armour": {
+    "Armour": {
         "Body Armour": [
             {
                 "null": "",
@@ -4639,7 +4639,7 @@
             }
         ]
     },
-    "jewelry": {
+    "Jewelry": {
         "Amulet": [
             {
                 "null": "",
@@ -4836,7 +4836,7 @@
             }
         ]
     },
-    "weapon": {
+    "Weapon": {
         "Bow": [
             {
                 "null": "",
