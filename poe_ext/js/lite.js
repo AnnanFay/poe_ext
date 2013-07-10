@@ -14,23 +14,23 @@
 '		<meta name="viewport" content="width=device-width, initial-scale=1.0">' +
 '' +
 '		<!-- css scraped from the live PoE site -->' +
-'		<link href="http://njs50.github.com/poe_ext/assets/css/poe.css" rel="stylesheet">' +
-'		<link href="http://njs50.github.com/poe_ext/assets/css/bootstrap.min.css" rel="stylesheet">' +
+'		<link href="http://njs50.github.com/poe_ext/css/poe.css" rel="stylesheet">' +
+'		<link href="http://njs50.github.com/poe_ext/css/bootstrap.min.css" rel="stylesheet">' +
 '' +
 '		<!-- poe_ext css (incl bootstrap overrides) -->' +
-'		<link href="http://njs50.github.com/poe_ext/assets/css/poe_ext.css" rel="stylesheet">' +
+'		<link href="http://njs50.github.com/poe_ext/css/poe_ext.css" rel="stylesheet">' +
 '' +
 '		<!-- bootstrap css -->' +
-'		<link href="http://njs50.github.com/poe_ext/assets/css/bootstrap-responsive.min.css" rel="stylesheet">' +
+'		<link href="http://njs50.github.com/poe_ext/css/bootstrap-responsive.min.css" rel="stylesheet">' +
 '' +
 '' +
-'		<script src="/assets/js/date.js"></script>' +
-'		<script src="/assets/js/json2.js"></script>' +
-'		<script src="/assets/js/jquery-1.7.2.js"></script>' +
-'		<script src="/assets/js/jquery.stupidtable.js"></script>' +
-'		<script src="/assets/js/jquery.blockUI.js"></script>' +
-'		<script src="/assets/js/jquery.tableExport.js"></script>' +
-'		<script src="/assets/js/track.js"></script>' +
+'		<script src="/js/date.js"></script>' +
+'		<script src="/js/json2.js"></script>' +
+'		<script src="/js/jquery-1.7.2.js"></script>' +
+'		<script src="/js/jquery.stupidtable.js"></script>' +
+'		<script src="/js/jquery.blockUI.js"></script>' +
+'		<script src="/js/jquery.tableExport.js"></script>' +
+'		<script src="/js/track.js"></script>' +
 '' +
 '	</head>' +
 '' +
@@ -308,21 +308,21 @@
 '' +
 '	    </div> <!-- /container -->' +
 '' +
-'		<script src="/assets/bootstrap/js/bootstrap.js"></script>' +
+'		<script src="/bootstrap/js/bootstrap.js"></script>' +
 '		<script src="/sprintf-0.7-beta1.js"></script>' +
 '		<script src="/simpleinherit.js"></script>' +
 '		<script src="/util.js"></script>' +
 '		<script src="/itemdata.js"></script>' +
 '		<script src="/currencydata.js"></script>' +
 '' +
-'		<script src="/assets/js/cache.js"></script>' +
-'		<script src="/assets/js/loader.js"></script>' +
+'		<script src="/js/cache.js"></script>' +
+'		<script src="/js/loader.js"></script>' +
 '' +
 '		<script src="/item-parser.js"></script>' +
 '		<script src="/matcher.js"></script>' +
 '		<script src="/main.js"></script>' +
-'		<script src="/assets/js/clipboard.js"></script>' +
-'		<script src="/assets/js/file.js"></script>' +
+'		<script src="/js/clipboard.js"></script>' +
+'		<script src="/js/file.js"></script>' +
 '' +
 '' +
 '	</body>' +

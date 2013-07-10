@@ -13,8 +13,8 @@
   },
 
   "icons" : {
-      "16" : "/assets/images/icon_16.png",
-      "128" : "/assets/images/icon_128.png"
+      "16" : "/images/icon_16.png",
+      "128" : "/images/icon_128.png"
     },
 
   "update_url": "https://raw.github.com/AnnanFay/poe_ext/master/poe_updates.xml",
